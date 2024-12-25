@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Sort Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 10px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .input-container {
+            margin-top: 10px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .content {
+            margin-top: 120px; /* Push content below the fixed header */
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #visualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .step {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            max-width: 100%;
+            text-align: center;
+        }
+
+        .group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .rectangle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-weight: bold;
+            padding: 10px;
+            font-size: 18px;
+            margin: 0 10px;
+        }
+
+        .split {
+            background-color: yellow;
+        }
+
+        .merge {
+            background-color: orange;
+        }
+
+        .final {
+            background-color: lightblue;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed header section -->
+    <div class="header">
+        <h1>Merge Sort Visualization</h1>
+        <div class="input-container">
+            <form method="POST">
+                <label for="data">Enter numbers (comma-separated):</label>
+                <input type="text" name="data" id="data" value="{{ request.form['data'] if request.form else '' }}" required>
+                <button type="submit">Start Sorting</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main content section -->
+    <div class="content">
+        <!-- Display error message if any -->
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <h2>Merge Sort Steps</h2>
+
+        <!-- Visualization container -->
+        <div id="visualization"></div>
+    </div>
+
+    <script>
+        const steps = {{ steps | tojson }};
+        const visualization = document.getElementById("visualization");
+
+        // Create and display a visualization step
+        function createStep(label, values, type) {
+            const stepDiv = document.createElement("div");
+            stepDiv.classList.add("step");
+
+            const groupDiv = document.createElement("div");
+            groupDiv.classList.add("group");
+
+            const rectangle = document.createElement("div");
+            rectangle.classList.add("rectangle");
+
+            // Process the group values and append them
+            values.split("   ").forEach(group => {
+                group.trim("[]").split(",").forEach((value, index, array) => {
+                    const valueElement = document.createElement("span");
+                    valueElement.textContent = value.trim();
+                    rectangle.appendChild(valueElement);
+                    if (index < array.length - 1) {
+                        rectangle.appendChild(document.createTextNode(", ")); // Add comma between elements
+                    }
+                });
+            });
+
+            // Apply style based on the step type (split, merge, final)
+            if (type === 'split') {
+                rectangle.classList.add("split");
+            } else if (type === 'merge') {
+                rectangle.classList.add("merge");
+            } else if (type === 'final') {
+                rectangle.classList.add("final");
+            }
+
+            groupDiv.appendChild(rectangle);
+            stepDiv.appendChild(groupDiv);
+
+            const labelDiv = document.createElement("div");
+            labelDiv.textContent = label;
+            stepDiv.appendChild(labelDiv);
+
+            visualization.appendChild(stepDiv);
+        }
+
+        // Function to animate steps
+        function animateSteps() {
+            let stepIndex = 0;
+
+            function nextStep() {
+                if (stepIndex < steps.length) {
+                    const [label, values] = steps[stepIndex];
+                    let type = 'split'; // Default type
+                    if (label.includes("Merge")) {
+                        type = 'merge';
+                    } else if (label.includes("Final")) {
+                        type = 'final';
+                    }
+                    createStep(label, values, type);
+
+                    stepIndex++;
+                    setTimeout(nextStep, 1500); // Delay between steps
+                }
+            }
+
+            nextStep();
+        }
+
+        window.onload = animateSteps;
+    </script>
+</body>
+</html>

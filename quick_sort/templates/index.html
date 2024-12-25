@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Sort Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 10px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .input-container {
+            margin-top: 10px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .content {
+            margin-top: 120px;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #visualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .step {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            max-width: 100%;
+            text-align: center;
+            margin: 10px 0;
+            flex-direction: column;
+        }
+
+        .group {
+            display: flex;
+            gap: 15px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rectangle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-weight: bold;
+            padding: 10px;
+            font-size: 18px;
+            margin: 0 10px;
+            min-width: 100px;
+            flex-wrap: wrap;
+        }
+
+        .pivot {
+            background-color: lightgreen;
+        }
+
+        .final {
+            background-color: lightblue;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .explanation {
+            font-size: 14px;
+            color: #555;
+            margin-top: 10px;
+            padding: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Quick Sort Visualization</h1>
+        <div class="input-container">
+            <form method="POST">
+                <label for="data">Enter numbers (comma-separated):</label>
+                <input type="text" name="data" id="data" value="{{ request.form['data'] if request.form else '' }}" required>
+                <button type="submit">Start Sorting</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="content">
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <h2>Quick Sort Steps</h2>
+
+        <div id="visualization"></div>
+    </div>
+
+    <script>
+        const steps = {{ steps | tojson }};  // Convert the steps to JSON format
+        const visualization = document.getElementById("visualization");
+
+        // Function to create a step in the visualization with explanations
+        function createStep(label, values, type, explanation) {
+            const stepDiv = document.createElement("div");
+            stepDiv.classList.add("step");
+
+            const labelDiv = document.createElement("div");
+            labelDiv.textContent = label;
+
+            const groupDiv = document.createElement("div");
+            groupDiv.classList.add("group");
+
+            const rectangleContainer = document.createElement("div");
+            rectangleContainer.classList.add("rectangle");
+
+            // Split the values and add each value as a span element
+            const valueArray = values.split(',').map(value => value.trim());
+            valueArray.forEach((value, index, array) => {
+                const valueElement = document.createElement("span");
+                valueElement.textContent = value;
+                rectangleContainer.appendChild(valueElement);
+                if (index < array.length - 1) {
+                    rectangleContainer.appendChild(document.createTextNode(", "));
+                }
+            });
+
+            // Assign class based on type (pivot, final)
+            if (type === 'pivot') {
+                rectangleContainer.classList.add("pivot");
+            } else if (type === 'final') {
+                rectangleContainer.classList.add("final");
+            }
+
+            groupDiv.appendChild(rectangleContainer);
+            stepDiv.appendChild(groupDiv);
+            stepDiv.appendChild(labelDiv);
+
+            // Add the explanation
+            const explanationDiv = document.createElement("div");
+            explanationDiv.classList.add("explanation");
+            explanationDiv.textContent = explanation;
+            stepDiv.appendChild(explanationDiv);
+
+            visualization.appendChild(stepDiv);
+        }
+
+        // Function to animate the visualization steps
+        function animateSteps() {
+            let stepIndex = 0;
+
+            function nextStep() {
+                if (stepIndex < steps.length) {
+                    const [label, values] = steps[stepIndex];
+                    let type = 'pivot'; // Default step type is 'pivot'
+                    let explanation = "";
+
+                    // Provide different explanations based on the step
+                    if (label.includes("Pivot")) {
+                        explanation = "This element is chosen as the pivot. The array will be partitioned around this element.";
+                    } else if (label.includes("Final")) {
+                        type = "final";
+                        explanation = "This is the final sorted state of the array.";
+                    }
+
+                    createStep(label, values, type, explanation);
+                    stepIndex++;
+                    setTimeout(nextStep, 1000); // Show the next step every second
+                }
+            }
+
+            nextStep();
+        }
+
+        // Start animation when the page loads
+        if (steps.length > 0) {
+            animateSteps();
+        }
+    </script>
+
+</body>
+</html>

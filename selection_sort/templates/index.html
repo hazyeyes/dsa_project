@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selection Sort Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            padding: 10px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .input-container {
+            margin-top: 10px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .content {
+            margin-top: 120px; /* Space for fixed header */
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #visualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .step {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .box {
+            width: 5%;  /* Box width as a percentage of container width */
+            margin: 0 2px; /* Space between the boxes */
+            background-color: white;
+            text-align: center;
+            line-height: 30px;  /* Center the number inside each box */
+            border: 1px solid #000;
+            transition: height 0.3s, background-color 0.3s; /* Smooth transition for changes */
+            font-size: 16px;
+        }
+
+        .highlight-orange {
+            background-color: orange;
+        }
+
+        .highlight-yellow {
+            background-color: yellow;
+        }
+
+        .highlight-green {
+            background-color: green;
+        }
+
+        .highlight-blue {
+            background-color: blue;
+        }
+
+        #error-message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed header section -->
+    <div class="header">
+        <h1>Selection Sort Visualization</h1>
+        <div class="input-container">
+            <form method="POST">
+                <label for="data">Enter numbers (comma-separated):</label>
+                <input type="text" name="data" id="data" value="{{ request.form['data'] if request.form else '' }}" required>
+                <button type="submit">Start Sorting</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main content section -->
+    <div class="content">
+        <!-- Display error message if any -->
+        {% if error %}
+            <p id="error-message">{{ error }}</p>
+        {% endif %}
+
+        <h2>Selection Sort</h2>
+
+        <!-- Container for the visualization -->
+        <div id="visualization"></div>
+    </div>
+
+    <script>
+        const steps = {{ steps|tojson }};
+        const data = {{ data|tojson }};
+        const visualization = document.getElementById("visualization");
+
+        // Function to create visualization for each step
+        function createStepBox(values, colors) {
+            const stepDiv = document.createElement("div");
+            stepDiv.classList.add("step");
+
+            values.forEach((value, index) => {
+                const box = document.createElement("div");
+                box.classList.add("box");
+                box.style.height = (value * (100 / Math.max(...data))) + "%";  // Scale height based on container height
+                box.innerText = value;
+
+                // Apply highlight classes based on the current color
+                if (colors[index] === "orange") {
+                    box.classList.add("highlight-orange");
+                } else if (colors[index] === "yellow") {
+                    box.classList.add("highlight-yellow");
+                } else if (colors[index] === "green") {
+                    box.classList.add("highlight-green");
+                } else if (colors[index] === "blue") {
+                    box.classList.add("highlight-blue");
+                }
+
+                stepDiv.appendChild(box);
+            });
+
+            visualization.appendChild(stepDiv);
+        }
+
+        // Function to visualize all steps of the sorting process
+        function visualizeSteps() {
+            let stepIndex = 0;
+
+            function nextStep() {
+                if (stepIndex < steps.length) {
+                    const step = steps[stepIndex];
+                    const values = step[0];
+                    const colors = step[1];
+
+                    // Create a new line (step) of boxes and add it to the visualization
+                    createStepBox(values, colors);
+
+                    stepIndex++;
+                    setTimeout(nextStep, 500);  // Delay to control the speed of visualization
+                }
+            }
+
+            nextStep();
+        }
+
+        // Start visualizing after the page loads
+        window.onload = function() {
+            setTimeout(visualizeSteps, 1000);
+        };
+    </script>
+
+</body>
+</html>
